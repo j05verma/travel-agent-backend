@@ -1,0 +1,15 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: travel-agent-backend
+
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/travel_agent_db}
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        model: ${CHAT_MODEL:gpt-4o-mini}
