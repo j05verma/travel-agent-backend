@@ -1,5 +1,7 @@
 package com.travel.flight.dto;
 
+import java.util.List;
+
 import com.travel.flight.model.BookingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +16,7 @@ public class FlightBookingResponse {
     private String bookingId;
     private String flightNumber;
     private String departureTime;
-    private String customerName;
+    private List<PassengerResponse> passengers;
     private int seats;
     private double totalPrice;
     private BookingStatus status;

@@ -1,17 +1,22 @@
 package com.travel.flight.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.travel.common.exception.DuplicateResourceException;
 import com.travel.common.exception.InvalidOperationException;
 import com.travel.common.exception.ResourceNotFoundException;
+import com.travel.flight.dto.FlightBookingRequest;
 import com.travel.flight.dto.FlightRequest;
+import com.travel.flight.dto.PassengerRequest;
 import com.travel.flight.model.BookingStatus;
 import com.travel.flight.model.Flight;
 import com.travel.flight.model.FlightBooking;
+import com.travel.flight.model.Passenger;
 import com.travel.flight.repository.FlightBookingRepository;
 import com.travel.flight.repository.FlightRepository;
 import com.travel.flight.service.FlightService;
@@ -71,29 +76,75 @@ public class FlightServiceImpl implements FlightService {
 
 
     @Override
-    public FlightBooking book(String flightNumber, String departureTime, String customerName, int seats) {
-       Flight flight = flightRepository.findByFlightNumberIgnoreCaseAndDeletedFalseAndDepartureTime(flightNumber, departureTime)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Flight " + flightNumber + " not found for departure " + departureTime));
+    public FlightBooking book(FlightBookingRequest request) {
+        // Find the requested flight
+        Flight flight = flightRepository
+            .findByFlightNumberIgnoreCaseAndDeletedFalseAndDepartureTime(
+                    request.getFlightNumber(),
+                    request.getDepartureTime())
+            .orElseThrow(() -> new ResourceNotFoundException(
+                    "Flight " + request.getFlightNumber()
+                            + " not found for departure "
+                            + request.getDepartureTime()));
 
+        // Validate that at least one passenger is provided
+        if (CollectionUtils.isEmpty(request.getPassengers())) {
+              throw new InvalidOperationException(
+            "At least one passenger is required");
+              }
 
-        if(flight.getSeatsAvailable() < seats) {
-             throw new InvalidOperationException("Not enough seats available on flight " + flightNumber
-                    + ". Only " + flight.getSeatsAvailable() + " left");
-        }
+        // Number of seats is equal to the number of passengers
+        int seats = request.getPassengers().size();
 
-        flight.setSeatsAvailable(flight.getSeatsAvailable() - seats);
-        flightRepository.save(flight);
-        FlightBooking booking = FlightBooking.builder()
-                .flightNumber(flight.getFlightNumber())
-                .departureTime(flight.getDepartureTime())
-                .customerName(customerName)
-                .seats(seats)
-                .totalPrice(flight.getPrice() * seats)
-                .status(BookingStatus.CONFIRMED)
-                .bookingDate(LocalDateTime.now())
+        // Check whether enough seats are available
+        if (flight.getSeatsAvailable() < seats) {
+        throw new InvalidOperationException(
+                "Not enough seats available on flight "
+                        + request.getFlightNumber()
+                        + ". Only "
+                        + flight.getSeatsAvailable()
+                        + " left");
+       }
+       // Find all confirmed bookings for this flight
+       List<FlightBooking> existingBookings =
+            flightBookingRepository
+                    .findByFlightNumberAndDepartureTimeAndStatus(
+                            flight.getFlightNumber(),
+                            flight.getDepartureTime(),
+                            BookingStatus.CONFIRMED);
+
+         // Find the next available seat number
+         int nextSeatNumber = existingBookings.stream()
+            .flatMap(booking -> booking.getPassengers().stream())
+            .mapToInt(Passenger::getSeatNumber)
+            .max()
+            .orElse(0) + 1;
+
+        // Create passengers and assign seat numbers automatically
+         List<Passenger> passengers = new ArrayList<>();
+         for (PassengerRequest passengerRequest : request.getPassengers()) {
+        Passenger passenger = Passenger.builder()
+                .seatNumber(nextSeatNumber++)
+                .passengerName(passengerRequest.getPassengerName())
                 .build();
-                return flightBookingRepository.save(booking);
+        passengers.add(passenger);
+    }
+         // Reduce the available seats after booking
+          flight.setSeatsAvailable(flight.getSeatsAvailable() - seats);
+            flightRepository.save(flight);
+
+             // Create the flight booking
+            FlightBooking booking = FlightBooking.builder()
+            .flightNumber(flight.getFlightNumber())
+            .departureTime(flight.getDepartureTime())
+            .passengers(passengers)
+            .seats(seats)
+            .totalPrice(flight.getPrice() * seats)
+            .status(BookingStatus.CONFIRMED)
+            .bookingDate(LocalDateTime.now())
+            .build();
+            return flightBookingRepository.save(booking);
+         
     }
 
 
@@ -118,7 +169,8 @@ public class FlightServiceImpl implements FlightService {
 
     @Override
     public List<FlightBooking> getBookingsByCustomer(String customerName) {
-        return flightBookingRepository.findByCustomerNameIgnoreCase(customerName);
+        return flightBookingRepository
+                .findByPassengersPassengerNameIgnoreCase(customerName);
     }
 
 

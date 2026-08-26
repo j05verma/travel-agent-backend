@@ -1,7 +1,10 @@
 package com.travel.flight.dto;
 
-import jakarta.validation.constraints.Min;
+import java.util.List;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,9 +20,7 @@ public class FlightBookingRequest {
     @NotBlank(message = "departureTime is required")
     private String departureTime;
  
-    @NotBlank(message = "customerName is required")
-    private String customerName;
-
-    @Min(value = 1, message = "seats must be at least 1")
-    private int seats;
+    @NotEmpty(message = "At least one passenger is required")
+    @Valid
+    private List<PassengerRequest> passengers;
 }

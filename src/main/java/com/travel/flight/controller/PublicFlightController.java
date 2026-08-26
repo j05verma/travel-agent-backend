@@ -5,15 +5,18 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.travel.common.dto.ApiResponse;
+import com.travel.flight.dto.FlightBookingRequest;
 import com.travel.flight.model.Flight;
 import com.travel.flight.model.FlightBooking;
 import com.travel.flight.service.FlightService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -29,7 +32,6 @@ public class PublicFlightController {
         return ApiResponse.ok(flightService.search(source, destination), "Flights fetched successfully");
     }
 
-    
 
     @GetMapping("/{flightNumber}")
     public ApiResponse<Flight> getFlightDetails(
@@ -40,11 +42,10 @@ public class PublicFlightController {
 
     @PostMapping("/book")
     public ApiResponse<FlightBooking> book(
-            @RequestParam String flightNumber,
-            @RequestParam String departureTime,
-            @RequestParam String customerName,
-            @RequestParam int seats) {
-        return ApiResponse.ok(flightService.book(flightNumber, departureTime, customerName, seats), "Flight booked successfully");
+            @Valid @RequestBody FlightBookingRequest request) {
+        return ApiResponse.ok(
+            flightService.book(request),
+            "Flight booked successfully");
     }
 
     @PostMapping("/cancel/{bookingId}")
