@@ -2,81 +2,504 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Travel Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 700px;
-            margin: 40px auto;
-            background: #f4f6f8;
-            padding: 0 20px;
+        :root {
+            --ink: #16213A;
+            --muted: #6B7580;
+            --blue: #2F6FED;
+            --blue-dark: #1B4FD1;
+            --mint: #34C9A3;
+            --card: rgba(255,255,255,0.72);
+            --card-border: rgba(255,255,255,0.6);
+            --line: rgba(22,33,58,0.08);
         }
-        h1 { color: #1a73e8; }
-        .card {
-            background: white;
-            padding: 20px;
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 0%, rgba(191,214,255,0.9), transparent 45%),
+                radial-gradient(circle at 95% 10%, rgba(200,240,230,0.7), transparent 40%),
+                linear-gradient(180deg, #F3F6FC 0%, #F8F9FC 100%);
+            padding: 28px 32px 40px;
+        }
+        .shell { max-width: 1240px; margin: 0 auto; }
+
+        /* ---------- Top bar ---------- */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 26px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand .mark {
+            width: 36px; height: 36px;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, var(--blue), #6E9BFF);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px;
+        }
+        .brand h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 21px;
+            font-weight: 700;
+            margin: 0;
+        }
+        nav.tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            padding: 5px;
+            border-radius: 999px;
+            box-shadow: 0 6px 18px rgba(22,33,58,0.06);
+        }
+        nav.tabs a.active { background: var(--blue); color: #fff; }
+        .tab-btn {
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 9px 18px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        .tab-btn.active { background: var(--blue); color: #fff; }
+        .top-icons { display: flex; gap: 10px; }
+        .top-icons span {
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+        }
+
+        /* ---------- Feature cards ---------- */
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
             margin-bottom: 20px;
         }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            font-size: 15px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-        button {
-            background: #1a73e8;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 10px 26px rgba(22,33,58,0.06);
+            text-align: left;
+            font-family: 'Inter', sans-serif;
             cursor: pointer;
-            margin-top: 10px;
-            font-size: 15px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        button:hover { background: #1558b0; }
-        .history { margin-top: 20px; }
-        .msg-block { margin-bottom: 18px; }
-        .you {
-            color: #555;
-            font-weight: bold;
-            background: #f0f0f0;
-            padding: 8px 12px;
-            border-radius: 8px;
-            display: inline-block;
+        .feature-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(22,33,58,0.1); }
+        .feature-card.active { background: rgba(47,111,237,0.10); border-color: rgba(47,111,237,0.25); }
+        .feature-card .icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            background: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 19px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 10px rgba(22,33,58,0.06);
         }
-        .reply {
-            white-space: pre-wrap;
-            background: #eef3fc;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-top: 8px;
+        .feature-card h3 { margin: 0 0 4px; font-family: 'Space Grotesk', sans-serif; font-size: 17px; }
+        .feature-card p { margin: 0; font-size: 13.5px; color: var(--muted); }
+
+        /* ---------- Layout: chat + side ---------- */
+        .layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+        .main-col { min-width: 0; }
+
+        .weather-card {
+            border-radius: 18px;
+            padding: 20px;
+            color: #fff;
+            background: linear-gradient(160deg, #223257 0%, #3a4f7a 55%, #6b4a5e 100%);
+            box-shadow: 0 14px 30px rgba(22,33,58,0.18);
+            margin-bottom: 20px;
+        }
+        .weather-card .label { font-size: 13px; opacity: 0.85; margin-bottom: 10px; }
+        .weather-card .temp { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 700; }
+        .weather-card .desc { font-size: 13.5px; opacity: 0.85; margin-top: 4px; }
+        .weather-card .hint {
+            margin-top: 14px; font-size: 12px; opacity: 0.75;
+            border-top: 1px solid rgba(255,255,255,0.18); padding-top: 12px;
+        }
+        .weather-mini-row { display: flex; gap: 8px; margin-top: 14px; }
+        .weather-mini-row input {
+            flex: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12); color: #fff; padding: 8px 10px; font-size: 13px; outline: none;
+        }
+        .weather-mini-row input::placeholder { color: rgba(255,255,255,0.6); }
+        .weather-mini-row button {
+            border: none; border-radius: 10px; background: #fff; color: var(--blue-dark);
+            font-weight: 700; font-size: 13px; padding: 8px 14px; cursor: pointer;
+        }
+
+        /* ---------- Tool cards (Flights / Hotels / Weather panels) ---------- */
+        .tool-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 22px;
+            box-shadow: 0 16px 36px rgba(22,33,58,0.08);
+            margin-bottom: 18px;
+        }
+        .tool-card h2 { margin: 0 0 14px; font-family: 'Space Grotesk', sans-serif; font-size: 17px; }
+        .tool-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .tool-row input {
+            flex: 1; min-width: 160px;
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            outline: none;
+        }
+        .tool-row input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,111,237,0.14); }
+        .go-btn {
+            border: none; border-radius: 10px; background: var(--blue-dark); color: #fff;
+            font-weight: 600; font-size: 14px; padding: 11px 20px; cursor: pointer;
+        }
+        .go-btn:hover { background: var(--blue); }
+        .results-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+        .result-item {
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 12px;
+            padding: 13px 16px;
+            font-size: 13.5px;
+            line-height: 1.6;
+        }
+        .result-item b { color: var(--ink); }
+        .result-empty { color: var(--muted); font-size: 13.5px; padding: 8px 2px; }
+
+        /* ---------- Chat panel ---------- */
+        .chat-panel {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            box-shadow: 0 16px 36px rgba(22,33,58,0.08);
+            display: flex;
+            flex-direction: column;
+            min-height: 560px;
+        }
+        .chat-head {
+            display: flex; align-items: center; gap: 12px;
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--line);
+        }
+        .chat-head .avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--mint));
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 16px;
+        }
+        .chat-head h2 { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 16px; }
+        .chat-head .status { font-size: 12.5px; color: var(--mint); display: flex; align-items: center; gap: 5px; }
+        .chat-head .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+
+        .chat-body { flex: 1; padding: 20px 22px; overflow-y: auto; }
+        .bubble-row { display: flex; margin-bottom: 14px; }
+        .bubble-row.user { justify-content: flex-end; }
+        .bubble {
+            max-width: 72%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14.5px;
             line-height: 1.5;
+            white-space: pre-wrap;
         }
-        .timestamp { font-size: 12px; color: #999; margin-top: 4px; }
+        .bubble-row.user .bubble {
+            background: var(--blue);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .bubble-row.ai .bubble {
+            background: #fff;
+            color: var(--ink);
+            border: 1px solid var(--line);
+            border-bottom-left-radius: 4px;
+        }
+        .bubble-time { font-size: 10.5px; color: var(--muted); margin-top: 5px; }
+
+        .empty-state {
+            margin: auto;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            padding: 40px 20px;
+        }
+
+        .chat-input {
+            display: flex; align-items: center; gap: 10px;
+            padding: 16px 18px;
+            border-top: 1px solid var(--line);
+        }
+        .chat-input textarea {
+            flex: 1;
+            resize: none;
+            border: 1px solid var(--line);
+            background: #fff;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14.5px;
+            color: var(--ink);
+            outline: none;
+            max-height: 90px;
+        }
+        .chat-input textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,111,237,0.14); }
+        .chat-input button {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: var(--blue-dark);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .chat-input button:hover { background: var(--blue); }
+        .chat-input button:focus-visible { outline: 3px solid rgba(47,111,237,0.4); outline-offset: 2px; }
+
+        @media (max-width: 900px) {
+            .cards-row { grid-template-columns: 1fr; }
+            .layout { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <h1>✈️ AI Travel Agent</h1>
-    <div class="card">
-        <form method="post" th:action="@{/chat}">
-            <textarea name="message" rows="3"
-                      placeholder="e.g. Search flights from Bengaluru to Delhi, or Book AI-101 for Jayant"></textarea>
-            <br>
-            <button type="submit">Send</button>
-        </form>
-    </div>
+    <div class="shell">
+        <div class="topbar">
+            <div class="brand">
+                <div class="mark">✈️</div>
+                <h1>AI Travel Agent</h1>
+            </div>
+            <nav class="tabs">
+                <button type="button" class="tab-btn active" data-tab="chat">Gate Chat</button>
+                <button type="button" class="tab-btn" data-tab="flights">Flights &amp; Hotels</button>
+                <button type="button" class="tab-btn" data-tab="weather">Weather</button>
+            </nav>
+            <div class="top-icons">
+                <span>⚙️</span>
+                <span>🔔</span>
+            </div>
+        </div>
 
-    <div class="card history" th:if="${not #lists.isEmpty(history)}">
-        <div class="msg-block" th:each="msg : ${history}">
-            <div class="you">You: <span th:text="${msg.userMessage}"></span></div>
-            <div class="reply" th:text="${msg.aiReply}"></div>
-            <div class="timestamp" th:text="${#temporals.format(msg.timestamp, 'dd MMM yyyy, hh:mm a')}"></div>
+        <div class="cards-row">
+            <button type="button" class="feature-card active" data-tab="chat">
+                <div class="icon">💬</div>
+                <h3>Gate Chat</h3>
+                <p>Your AI travel assistant</p>
+            </button>
+            <button type="button" class="feature-card" data-tab="flights">
+                <div class="icon">🏨</div>
+                <h3>Flights &amp; Hotels</h3>
+                <p>Search live flights and hotels</p>
+            </button>
+            <button type="button" class="feature-card" data-tab="weather">
+                <div class="icon">🌤️</div>
+                <h3>Weather</h3>
+                <p>Check live conditions for any city</p>
+            </button>
+        </div>
+
+        <div class="layout">
+            <div class="main-col">
+                <div class="panel" id="panel-chat">
+                    <div class="chat-panel">
+                        <div class="chat-head">
+                            <div class="avatar">✦</div>
+                            <div>
+                                <h2>AI Assistant</h2>
+                                <div class="status">Online</div>
+                            </div>
+                        </div>
+
+                        <div class="chat-body">
+                            <div th:if="${#lists.isEmpty(history)}" class="empty-state">
+                                Hi! I'm your AI travel assistant.<br>Ask me to search flights, book a hotel, or check the weather.
+                            </div>
+
+                            <div th:each="msg : ${history}">
+                                <div class="bubble-row user">
+                                    <div>
+                                        <div class="bubble" th:text="${msg.userMessage}"></div>
+                                    </div>
+                                </div>
+                                <div class="bubble-row ai">
+                                    <div>
+                                        <div class="bubble" data-ai="true" th:text="${msg.aiReply}"></div>
+                                        <div class="bubble-time" th:text="${#temporals.format(msg.timestamp, 'dd MMM, hh:mm a')}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post" th:action="@{/chat}" class="chat-input">
+                            <textarea name="message" rows="1" placeholder="Ask me anything..."></textarea>
+                            <button type="submit" aria-label="Send message">➤</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-flights" style="display:none">
+                    <div class="tool-card">
+                        <h2>Search flights</h2>
+                        <div class="tool-row">
+                            <input type="text" id="flightSource" placeholder="From (source city)">
+                            <input type="text" id="flightDestination" placeholder="To (destination city)">
+                            <button type="button" class="go-btn" onclick="searchFlights()">Search</button>
+                        </div>
+                        <div id="flightResults" class="results-list"></div>
+                    </div>
+
+                    <div class="tool-card">
+                        <h2>Search hotels</h2>
+                        <div class="tool-row">
+                            <input type="text" id="hotelCity" placeholder="City">
+                            <button type="button" class="go-btn" onclick="searchHotels()">Search</button>
+                        </div>
+                        <div id="hotelResults" class="results-list"></div>
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-weather" style="display:none">
+                    <div class="tool-card">
+                        <h2>Check weather</h2>
+                        <div class="tool-row">
+                            <input type="text" id="weatherCityBig" placeholder="City">
+                            <button type="button" class="go-btn" onclick="checkWeather('weatherCityBig')">Check</button>
+                        </div>
+                        <div id="weatherResultBig" class="results-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-col">
+                <div class="weather-card">
+                    <div class="label">Weather</div>
+                    <div class="temp" id="sideTemp">--°C</div>
+                    <div class="desc" id="sideDesc">Ask "weather in &lt;city&gt;" in chat</div>
+                    <div class="weather-mini-row">
+                        <input type="text" id="weatherCitySide" placeholder="City" onkeydown="if(event.key==='Enter'){checkWeather('weatherCitySide'); return false;}">
+                        <button type="button" onclick="checkWeather('weatherCitySide')">Go</button>
+                    </div>
+                    <div class="hint">Live conditions load once you check a city.</div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        // ---------- Tab switching ----------
+        function activateTab(tab) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.getElementById('panel-' + tab).style.display = 'block';
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+            document.querySelectorAll('.feature-card').forEach(c => c.classList.toggle('active', c.dataset.tab === tab));
+        }
+        document.querySelectorAll('[data-tab]').forEach(el => {
+            el.addEventListener('click', () => activateTab(el.dataset.tab));
+        });
+
+        // ---------- Markdown-lite formatting for AI bubbles ----------
+        function mdToHtml(text) {
+            let html = text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n- (.+)/g, '\n• $1')
+                .replace(/\n/g, '<br>');
+            return html;
+        }
+        document.querySelectorAll('.bubble[data-ai="true"]').forEach(el => {
+            el.innerHTML = mdToHtml(el.textContent);
+        });
+
+        // ---------- Live Flights search ----------
+        async function searchFlights() {
+            const source = document.getElementById('flightSource').value.trim();
+            const destination = document.getElementById('flightDestination').value.trim();
+            const box = document.getElementById('flightResults');
+            if (!source || !destination) { box.innerHTML = '<div class="result-empty">Enter both a source and destination city.</div>'; return; }
+            box.innerHTML = '<div class="result-empty">Searching…</div>';
+            try {
+                const res = await fetch(`/public/api/flights/search?source=${encodeURIComponent(source)}&destination=${encodeURIComponent(destination)}`);
+                const json = await res.json();
+                const flights = json.data || [];
+                if (flights.length === 0) { box.innerHTML = '<div class="result-empty">No flights found for that route.</div>'; return; }
+                box.innerHTML = flights.map(f => `
+                    <div class="result-item">
+                        <b>${f.flightNumber}</b> · ${f.airline}<br>
+                        ${f.source} → ${f.destination}<br>
+                        Departs ${f.departureTime} · Rs.${f.price.toFixed(2)} · ${f.seatsAvailable} seats left
+                    </div>`).join('');
+            } catch (e) {
+                box.innerHTML = '<div class="result-empty">Couldn\'t reach the flights service.</div>';
+            }
+        }
+
+        // ---------- Live Hotels search ----------
+        async function searchHotels() {
+            const city = document.getElementById('hotelCity').value.trim();
+            const box = document.getElementById('hotelResults');
+            if (!city) { box.innerHTML = '<div class="result-empty">Enter a city.</div>'; return; }
+            box.innerHTML = '<div class="result-empty">Searching…</div>';
+            try {
+                const res = await fetch(`/public/api/hotels/search?city=${encodeURIComponent(city)}`);
+                const json = await res.json();
+                const hotels = json.data || [];
+                if (hotels.length === 0) { box.innerHTML = '<div class="result-empty">No hotels found in that city.</div>'; return; }
+                box.innerHTML = hotels.map(h => `
+                    <div class="result-item">
+                        <b>${h.name}</b> · ${h.city}<br>
+                        Rs.${h.pricePerNight.toFixed(2)} / night · Rating ${h.rating} · ${h.roomsAvailable} rooms left
+                    </div>`).join('');
+            } catch (e) {
+                box.innerHTML = '<div class="result-empty">Couldn\'t reach the hotels service.</div>';
+            }
+        }
+
+        // ---------- Live Weather ----------
+        async function checkWeather(inputId) {
+            const city = document.getElementById(inputId).value.trim();
+            if (!city) return;
+            const bigBox = document.getElementById('weatherResultBig');
+            if (bigBox) bigBox.innerHTML = '<div class="result-empty">Checking…</div>';
+            try {
+                const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
+                const json = await res.json();
+                if (!res.ok || !json.data) throw new Error('not found');
+                const w = json.data;
+                document.getElementById('sideTemp').textContent = w.temperatureCelsius.toFixed(1) + '°C';
+                document.getElementById('sideDesc').textContent = w.city + ' · ' + w.airQualityCategory;
+                if (bigBox) {
+                    bigBox.innerHTML = `
+                        <div class="result-item">
+                            <b>${w.city}</b><br>
+                            ${w.temperatureCelsius.toFixed(1)}°C · Wind ${w.windSpeedKph.toFixed(1)} kph · Humidity ${w.humidityPercentage.toFixed(0)}%<br>
+                            Precipitation ${w.precipitationMm.toFixed(1)} mm · AQI ${w.airQualityIndex} (${w.airQualityCategory})
+                        </div>`;
+                }
+            } catch (e) {
+                if (bigBox) bigBox.innerHTML = '<div class="result-empty">Couldn\'t find weather for that city.</div>';
+                document.getElementById('sideDesc').textContent = "Couldn't fetch that city.";
+            }
+        }
+    </script>
 </body>
 </html>
