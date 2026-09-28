@@ -7,13 +7,22 @@ import com.travel.weather.tools.WeatherTools;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.io.Resource;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
 public class AiConfig {
+
+    @Value("classpath:/prompts/travel-agent-system.st")
+    private Resource systemPrompt;
 
     private final FlightTools flightTools;
     private final ChatMemory chatMemory;
@@ -22,22 +31,17 @@ public class AiConfig {
 
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder) {
+        SafeGuardAdvisor safeGuard = new SafeGuardAdvisor(
+                List.of("hack", "bomb", "password"),
+                "Sorry, I can only help with travel-related requests.",
+                Ordered.HIGHEST_PRECEDENCE
+        );
         return builder
-                 .defaultSystem("""
-                        You are a friendly and efficient AI travel agent. You help customers search for and book
-                        flights and hotels, check the weather at their destination, and manage their bookings.
-
-                        Flights: searchFlights, checkFlightAvailability, bookFlight, cancelFlightBooking, getBookingsByCustomer
-                        Hotels: searchHotels(city), checkHotelAvailability(hotelName), bookHotel(hotelName, checkInDate, checkOutDate, nights, guestNames), cancelHotelBooking(bookingId), getBookingsByGuest(guestName)
-                        Weather: getWeather - proactively check weather when a user is planning a trip to a city
-
-                        Always confirm key details (flight/hotel name, city, dates, passenger/guest names) before booking.
-                        Always share the booking ID after a successful booking.
-                        Remember details the user already told you earlier in this conversation — don't ask again.
-                        Be concise, clear, and helpful.
-                        """)
+                .defaultSystem(systemPrompt)
                 .defaultTools(flightTools, hotelTools, weatherTools)
-                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultAdvisors(
+                        safeGuard,
+                        MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
 }

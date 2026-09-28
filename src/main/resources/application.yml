@@ -5,11 +5,19 @@ spring:
   application:
     name: travel-agent-backend
 
+  config:
+    import: optional:file:.env[.properties]
+
   mongodb:
     uri: ${MONGODB_URI:mongodb://localhost:27017/travel_agent_db}
+    auto-index-creation: true
 
   ai:
     openai:
       api-key: ${OPENAI_API_KEY}
       chat:
         model: ${CHAT_MODEL:gpt-4o-mini}
+
+app:
+  ai:
+    daily-token-limit: ${DAILY_TOKEN_LIMIT}
